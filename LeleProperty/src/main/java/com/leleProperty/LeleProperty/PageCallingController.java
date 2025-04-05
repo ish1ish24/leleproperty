@@ -8,40 +8,40 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class PageCallingController {
 	
 	
-	@RequestMapping("/")
+	@GetMapping("/")
 	public String getNavbar() {
         return "index"; // Returns the navbar.html template
     }
 	
-	@RequestMapping("/productlist")
+	@GetMapping("/productlist")
 	public String getpropertpage() {
         return "fragment/property"; // Returns the navbar.html template
     }
-	@RequestMapping("/addproperty")
+	@GetMapping("/addproperty")
 	public String getaddProperty() {
         return "addproperty"; // Returns the navbar.html template
     }
 	
-	@RequestMapping("/ad")
+	@GetMapping("/ad")
 	public String getadminpage() {
         return "sidebar"; // Returns the navbar.html template
     }
 	
-	@RequestMapping("/registration")
+	@GetMapping("/registration")
 	public String getRegisternpage() {
         return "fragment/registration"; // Returns the navbar.html template
     }
 	
-	@RequestMapping("/userdetail")
+	@GetMapping("/userdetail")
 	public String getuseDetail() {
         return "userdetail"; // Returns the navbar.html template
     }
 	
-	@RequestMapping("/contact")
+	@GetMapping("/contact")
 	public String getcontactpage() {
         return "contact"; // Returns the navbar.html template
     }
-	@RequestMapping("/service")
+	@GetMapping("/service")
 	public String getservicepage() {
         return "service"; // Returns the navbar.html template
     }
