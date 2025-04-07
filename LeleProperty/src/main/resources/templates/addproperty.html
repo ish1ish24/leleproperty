@@ -340,122 +340,108 @@
     </div>
 
     <script>
-        let allProperties = [];
+    let allProperties = [];
 
-        function populateGrid(properties) {
-            const grid = document.getElementById('propertyGrid');
-            grid.innerHTML = '';
+    function populateGrid(properties) {
+        const grid = document.getElementById('propertyGrid');
+        grid.innerHTML = '';
 
-            properties.forEach(property => {
-                const item = document.createElement('div');
-                item.className = 'property-item';
-                item.dataset.propertyName = property.propertyName;
-                item.dataset.image1 = property.image1;
-                item.dataset.propertyCategory = property.catagory; // Use 'catagory' here
-                item.dataset.propertyType = property.propertyType;
-                item.dataset.propertyAddress = property.propertyAddress;
-                item.dataset.propertyArea = property.propertyArea;
-                item.dataset.propertyPrice = property.propertyPrice;
-                item.dataset.propertyDescription = property.propertyDescription;
-                item.dataset.propertyId = property.propertyId;
+        properties.forEach(property => {
+            const item = document.createElement('div');
+            item.className = 'property-item';
 
-                item.innerHTML = `
-                    <h3>${property.propertyName}</h3>
-                    <img src="${property.image1}" alt="${property.propertyName}">
-                    <p>Category: ${property.catagory}</p> <p>Type: ${property.propertyType}</p>
-                    <p>Address: ${property.propertyAddress}</p>
-                    <p>Area: ${property.propertyArea}</p>
-                    <p>Price: ${property.propertyPrice}</p>
-                    <p>Description: ${property.propertyDescription}</p>
-                    <a href="/editProperty/${property.propertyId}"><i class="fas fa-edit"></i> Edit</a> |
-                    <a href="/deleteProperty/${property.propertyId}" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</a>
-                `;
-                grid.appendChild(item);
-            });
-        }
-        function fetchAndPopulateProperties() {
-            fetch('/api/getAllProperty')
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.body) {
-                        allProperties = data.body;
-                        populateGrid(allProperties);
-                    } else {
-                        console.error('Invalid data format received:', data);
-                    }
-                })
-                .catch(error => console.error('Error fetching properties:', error));
-        }
+            item.innerHTML = `
+                <h3>${property.propertyName}</h3>
+                <img src="${property.image1 || '/img/no-image.jpg'}" alt="${property.propertyName}">
+                <p>Category: ${property.category}</p>
+                <p>Type: ${property.propertyType}</p>
+                <p>Address: ${property.propertyAddress}</p>
+                <p>Area: ${property.propertyArea}</p>
+                <p>Price: ₹${property.propertyPrice}</p>
+                <p>Description: ${property.propertyDescription}</p>
+                <a href="/editProperty/${property.propertyId}"><i class="fas fa-edit"></i> Edit</a> |
+                <a href="/deleteProperty/${property.propertyId}" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</a>
+            `;
+            grid.appendChild(item);
+        });
+    }
 
-        fetchAndPopulateProperties();
-
-        function searchProperties() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const searchCategory = document.getElementById('searchCategory').value;
-            const searchType = document.getElementById('searchType').value;
-
-            const filteredProperties = allProperties.filter(property => {
-                let categoryMatch = true;
-                let typeMatch = true;
-                let textMatch = true;
-
-                if (searchCategory !== "") {
-                    categoryMatch = property.catagory === searchCategory;
-                }
-
-                if (searchType !== "") {
-                    typeMatch = property.propertyType === searchType;
-                }
-
-                if (searchTerm !== "") {
-                    textMatch = property.propertyName.toLowerCase().includes(searchTerm) ||
-                                property.propertyAddress.toLowerCase().includes(searchTerm) ||
-                                property.propertyArea.toLowerCase().includes(searchTerm) ||
-                                property.propertyPrice.toString().includes(searchTerm) ||
-                                property.propertyDescription.toLowerCase().includes(searchTerm);
-                }
-
-                return categoryMatch && typeMatch && textMatch;
-            });
-            populateGrid(filteredProperties);
-        }
-        function saveProperty() {
-            const formData = new FormData(document.getElementById('propertyForm'));
-
-            const propertyData = {
-                catagory: formData.get('propertyCategory'), // Changed 'propertyCategory' to 'catagory'
-                propertyType: formData.get('propertyType'),
-                propertyName: formData.get('propertyName'),
-                propertyAddress: formData.get('propertyAddress'),
-                propertyArea: formData.get('propertyArea'),
-                propertyPrice: formData.get('propertyPrice'),
-                propertyDescription: formData.get('propertyDescription')
-            };
-
-            formData.append('property', JSON.stringify(propertyData));
-
-            formData.append('image1', document.getElementById('propertyImage1').files[0]);
-            if(document.getElementById('propertyImage2').files[0]) formData.append('image2', document.getElementById('propertyImage2').files[0]);
-            if(document.getElementById('propertyImage3').files[0]) formData.append('image3', document.getElementById('propertyImage3').files[0]);
-            if(document.getElementById('propertyImage4').files[0]) formData.append('image4', document.getElementById('propertyImage4').files[0]);
-
-            fetch('/api/saveProperty', {
-                method: 'POST',
-                body: formData
+    function fetchAndPopulateProperties() {
+        fetch('/api/getAllProperty')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not OK');
+                return response.json();
             })
-            .then(response => response.json())
             .then(data => {
-                document.getElementById('modalMessage').textContent = data.message;
-                document.getElementById('responseModal').style.display = 'block';
-                document.getElementById('propertyForm').reset(); // Clear the form after successful submission
-                fetchAndPopulateProperties();
+                // Support either `body` or raw list
+                allProperties = Array.isArray(data) ? data : (data.body || []);
+                populateGrid(allProperties);
             })
             .catch(error => {
-                console.error('Error:', error);
-                document.getElementById('modalMessage').textContent = 'An error occurred. Please try again.';
-                document.getElementById('responseModal').style.display = 'block';
+                console.error('Error fetching properties:', error);
+                showModal("Failed to load properties. Please try again later.");
             });
-        }
+    }
+
+    fetchAndPopulateProperties();
+
+    function searchProperties() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const searchCategory = document.getElementById('searchCategory').value;
+        const searchType = document.getElementById('searchType').value;
+
+        const filteredProperties = allProperties.filter(property => {
+            const categoryMatch = !searchCategory || property.category === searchCategory;
+            const typeMatch = !searchType || property.propertyType === searchType;
+            const textMatch = [property.propertyName, property.propertyAddress, property.propertyArea, property.propertyPrice.toString(), property.propertyDescription]
+                .some(field => field?.toLowerCase().includes(searchTerm));
+            return categoryMatch && typeMatch && textMatch;
+        });
+
+        populateGrid(filteredProperties);
+    }
+
+    function saveProperty() {
+        const form = document.getElementById('propertyForm');
+        const formData = new FormData();
+
+        // Collect form images
+        ['image1', 'image2', 'image3', 'image4'].forEach((key, index) => {
+            const input = document.getElementById(`propertyImage${index + 1}`);
+            if (input?.files?.length > 0) {
+                formData.append(key, input.files[0]);
+            }
+        });
+
+        // Collect property JSON data
+        const propertyData = {
+            category: form.propertyCategory.value,
+            propertyType: form.propertyType.value,
+            propertyName: form.propertyName.value,
+            propertyAddress: form.propertyAddress.value,
+            propertyArea: form.propertyArea.value,
+            propertyPrice: form.propertyPrice.value,
+            propertyDescription: form.propertyDescription.value
+        };
+
+        formData.append('property', new Blob([JSON.stringify(propertyData)], { type: 'application/json' }));
+
+        fetch('/api/saveProperty', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            showModal(data.message || "Property saved.");
+            form.reset();
+            fetchAndPopulateProperties();
+        })
+        .catch(err => {
+            console.error("Save error:", err);
+            showModal("Failed to save property.");
+        });
+    }
+
 
         function closeModal() {
             document.getElementById('responseModal').style.display = 'none';
