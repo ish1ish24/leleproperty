@@ -1,6 +1,7 @@
 package com.leleProperty.LeleProperty.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +20,13 @@ public class PropertyServiceImpl {
 	PropertyRepository propertyRepository;
 	
 
-	
-	
-	//for fetching all property
+    //for fetching all property
 	public ResponseEntity<?> getAllProperty(){
 		List<Property> allProterty=propertyRepository.findAll();
-		return ResponseEntity.ok(allProterty);
+		
+	List<Property> pro2=allProterty.stream().filter(p-> p.getCatagory().contains("Residential")).collect(Collectors.toList());
+		
+		return ResponseEntity.ok(pro2);
 	}
 	
 	//for saving propertyDetail
